@@ -16,12 +16,6 @@ use Storage;
 
 class InterviewController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return Json
-     */
     public function index(Request $request)
     {
         return view('form');
@@ -55,13 +49,15 @@ class InterviewController extends Controller
             $input['scp-host'], 
             $input['scp-user'], 
             $input['scp-password'],
+            $input['scp-filename'],
             $input['scp-column']
         );
         
         $data[] = $this->getCsvData($request->file('csv-file'), $input['csv-column']);
 
-
-        return $this->filter($data);
+        $return = $this->filter($data);
+        
+        return view('form', ['filtered' => implode(',', $return)]);
     }
 
     private function getS3Data(
@@ -142,15 +138,16 @@ class InterviewController extends Controller
 
         $data = Storage::disk('sftp')->read($username.'/'. $filename);
         $lines = explode(PHP_EOL, $data);
-        $header = explode(',', array_shift($lines));
+        
+        $header = str_getcsv(array_shift($lines));
 
         $return = [];
 
         foreach ($lines as $line) {
-            if (!empty($line)) $array[] = array_combine($header, str_getcsv($line));
+            if (!empty($line)) $return[] = array_combine($header, str_getcsv($line));
         }
         
-        return array_column($return, $column);
+        return array_unique(array_column($return, $column));
     }
 
     private function getCsvData($file, $column) {
@@ -169,6 +166,7 @@ class InterviewController extends Controller
         $keys = fgetcsv($file);
 
         $temp = [];
+
         while (!feof($file)) {
             $row = array_combine($keys, fgetcsv($file));
             $temp[] = $row;
@@ -179,12 +177,10 @@ class InterviewController extends Controller
 
     private function filter($data)
     {
-        $return = [];
+        if (empty($data) == false) {
+            $return = array_shift($data);
 
-        foreach($data as $row) {
-            if (empty($return)) {
-                $return = $row;
-            } else {
+            foreach($data as $row) {
                 $return = array_filter($row, function($value) use ($return) {
                     return in_array($value, $return);
                 });    
