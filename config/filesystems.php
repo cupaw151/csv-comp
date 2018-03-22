@@ -42,7 +42,16 @@ return [
     */
 
     'disks' => [
-
+        'sftp' => [
+            'driver' => 'sftp',
+            'host' => 'example.com',
+            'port' => 21,
+            'username' => 'username',
+            'password' => 'password',
+            'privateKey' => 'path/to/or/contents/of/privatekey',
+            'root' => '/path/to/root',
+            'timeout' => 10,
+        ],
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),

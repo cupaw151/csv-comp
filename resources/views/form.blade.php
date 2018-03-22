@@ -11,27 +11,35 @@
 			{{ Form::open(array('route' => 'interview.submit', 'files' => true)) }}
 				<div class="form-group">
 					S3
-					<input name="s3-bucket" class="form-control"></input>
-					<input name="s3-region" class="form-control"></input>
-					<input name="s3-key" class="form-control"></input>
-					<input name="s3-secret" class="form-control"></input>
-					<input name="s3-filename" class="form-control"></input>
-					<input name="s3-column" class="form-control"></input>
+					<input required placeholder="Bucket" name="s3-bucket" class="form-control"></input>
+					<input required placeholder="Region" name="s3-region" class="form-control"></input>
+					<input required placeholder="Key" name="s3-key" class="form-control"></input>
+					<input required placeholder="Secret" name="s3-secret" class="form-control"></input>
+					<input required placeholder="Filename" name="s3-filename" class="form-control"></input>
+					<input required placeholder="Column name" name="s3-column" class="form-control"></input>
 				</div>
 				<div class="form-group">
 					MySQL
-					<input name="mysql-host" class="form-control"></input>
-					<input name="mysql-port" class="form-control"></input>
-					<input name="mysql-username" class="form-control"></input>
-					<input name="mysql-password" class="form-control"></input>
-					<input name="mysql-dbname" class="form-control"></input>
-					<input name="mysql-table" class="form-control"></input>
-					<input name="mysql-column" class="form-control"></input>
+					<input required placeholder="Host" name="mysql-host" class="form-control"></input>
+					<input required placeholder="Port" name="mysql-port" class="form-control"></input>
+					<input required placeholder="Username" name="mysql-username" class="form-control"></input>
+					<input required placeholder="Password" name="mysql-password" class="form-control"></input>
+					<input required placeholder="Database name" name="mysql-dbname" class="form-control"></input>
+					<input required placeholder="Table name" name="mysql-table" class="form-control"></input>
+					<input required placeholder="Column name" name="mysql-column" class="form-control"></input>
+				</div>
+				<div class="form-group">
+					SCP
+					<input required placeholder="Host" name="scp-host" class="form-control"></input>
+					<input required placeholder="User" name="scp-user" class="form-control"></input>
+					<input required placeholder="Password" name="scp-password" class="form-control"></input>
+					<input required placeholder="Filename" name="scp-filename" class="form-control"></input>
+					<input required placeholder="Column name" name="scp-column" class="form-control"></input>
 				</div>
 				<div class="form-group">
 					CSV
-					<input type="file" name="csv-file" style="margin-bottom:5px;"></input>
-					<input name="csv-column" class="form-control"></input>
+					<input required type="file" name="csv-file" style="margin-bottom:5px;"></input>
+					<input required placeholder="Column name" name="csv-column" class="form-control"></input>
 				</div>
 				<button type="submit" class="form-control"> Submit </button>
 			{{ Form::close() }}

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use League\Flysystem\Sftp\SftpAdapter;
 use Exception;
 use Config;
 use DB;
@@ -30,28 +31,33 @@ class InterviewController extends Controller
     {
         $input = $request->input();
         
-        // $s3Data = $this->getS3Data(
-        //     $input['s3-bucket'],
-        //     $input['s3-region'],
-        //     $input['s3-key'],
-        //     $input['s3-secret'],
-        //     $input['s3-filename'],
-        //     $input['s3-column']
-        // );
+        $s3Data = $this->getS3Data(
+            $input['s3-bucket'],
+            $input['s3-region'],
+            $input['s3-key'],
+            $input['s3-secret'],
+            $input['s3-filename'],
+            $input['s3-column']
+        );
 
-        // $sqlData = $this->getDatabaseData(
-        //     $input['mysql-host'], 
-        //     $input['mysql-port'], 
-        //     $input['mysql-username'], 
-        //     $input['mysql-password'],
-        //     $input['mysql-db'],
-        //     $input['mysql-table'],
-        //     $input['mysql-columnname']
-        // ));
+        $sqlData = $this->getDatabaseData(
+            $input['mysql-host'], 
+            $input['mysql-port'], 
+            $input['mysql-username'], 
+            $input['mysql-password'],
+            $input['mysql-db'],
+            $input['mysql-table'],
+            $input['mysql-column']
+        );
         
-        //$scpData = $this->getScpData();
+        $scpData = $this->getScpData(
+            $input['scp-host'], 
+            $input['scp-user'], 
+            $input['scp-password'],
+            $input['scp-column']
+        );
         
-        //$csvData = $this->getCsvData($request->file('csv-file'), $input['csv-column']);
+        $csvData = $this->getCsvData($request->file('csv-file'), $input['csv-column']);
     }
 
     private function getS3Data(
@@ -112,10 +118,35 @@ class InterviewController extends Controller
         return $data;
     }
 
-    private function getSCPData() {
-        SSH::into('staging')->get($remotePath, $localPath);
+    private function getSCPData(
+        $host,
+        $username,
+        $password,
+        $filename,
+        $column
+    ) {
+        Config::set('filesystems.disks.sftp', [
+            'driver' => 'sftp',
+            'host' => $host,
+            'port' => 22,
+            'username' => $username,
+            'password' => $password,
+            'privateKey' => '',
+            'root' => '/',
+            'timeout' => 20
+        ]);
 
-        return $this->parseCsv();      
+        $data = Storage::disk('sftp')->read($username.'/'. $filename);
+        $lines = explode(PHP_EOL, $data);
+        $header = explode(',', array_shift($lines));
+
+        $return = [];
+
+        foreach ($lines as $line) {
+            if (!empty($line)) $array[] = array_combine($header, str_getcsv($line));
+        }
+        
+        return array_column($return, $column);
     }
 
     private function getCsvData($file, $column) {
