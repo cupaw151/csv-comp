@@ -30,8 +30,9 @@ class InterviewController extends Controller
     public function submit(Request $request)
     {
         $input = $request->input();
-        
-        $s3Data = $this->getS3Data(
+
+        $data = [];
+        $data[] = $this->getS3Data(
             $input['s3-bucket'],
             $input['s3-region'],
             $input['s3-key'],
@@ -40,7 +41,7 @@ class InterviewController extends Controller
             $input['s3-column']
         );
 
-        $sqlData = $this->getDatabaseData(
+        $data[] = $this->getDatabaseData(
             $input['mysql-host'], 
             $input['mysql-port'], 
             $input['mysql-username'], 
@@ -50,14 +51,17 @@ class InterviewController extends Controller
             $input['mysql-column']
         );
         
-        $scpData = $this->getScpData(
+        $data[] = $this->getScpData(
             $input['scp-host'], 
             $input['scp-user'], 
             $input['scp-password'],
             $input['scp-column']
         );
         
-        $csvData = $this->getCsvData($request->file('csv-file'), $input['csv-column']);
+        $data[] = $this->getCsvData($request->file('csv-file'), $input['csv-column']);
+
+
+        return $this->filter($data);
     }
 
     private function getS3Data(
@@ -70,7 +74,7 @@ class InterviewController extends Controller
     ) {
         $s3 = new S3Client([
             'version'     => 'latest',
-            'region'      => 'ap-southeast-1',
+            'region'      => $region,
             'ResponseContentType' => 'text/plain',
             'credentials' => [
                 'key' => $key,
@@ -170,6 +174,23 @@ class InterviewController extends Controller
             $temp[] = $row;
         }
         
-        return(array_column($temp, $column));
+        return array_unique(array_column($temp, $column));
+    }
+
+    private function filter($data)
+    {
+        $return = [];
+
+        foreach($data as $row) {
+            if (empty($return)) {
+                $return = $row;
+            } else {
+                $return = array_filter($row, function($value) use ($return) {
+                    return in_array($value, $return);
+                });    
+            }
+        }
+
+        return $return;
     }
 }
